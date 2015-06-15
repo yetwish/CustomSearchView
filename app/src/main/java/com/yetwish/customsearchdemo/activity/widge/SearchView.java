@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -17,7 +18,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.yetwish.customsearchdemo.R;
 
@@ -71,7 +71,7 @@ public class SearchView extends LinearLayout implements View.OnClickListener {
     /**
      * 设置搜索回调接口
      *
-     * @param listener
+     * @param listener 监听者
      */
     public void setSearchViewListener(SearchViewListener listener) {
         mListener = listener;
@@ -99,9 +99,7 @@ public class SearchView extends LinearLayout implements View.OnClickListener {
                 etInput.setSelection(text.length());
                 //hint list view gone and result list view show
                 lvTips.setVisibility(View.GONE);
-                if (mListener != null) {
-                    mListener.onSearch(text);
-                }
+                notifyStartSearching(text);
             }
         });
 
@@ -115,13 +113,24 @@ public class SearchView extends LinearLayout implements View.OnClickListener {
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     lvTips.setVisibility(GONE);
-                    if (mListener != null) {
-                        mListener.onSearch(etInput.getText().toString());
-                    }
+                    notifyStartSearching(etInput.getText().toString());
                 }
                 return true;
             }
         });
+    }
+
+    /**
+     * 通知监听者 进行搜索操作
+     * @param text
+     */
+    private void notifyStartSearching(String text){
+        if (mListener != null) {
+            mListener.onSearch(etInput.getText().toString());
+        }
+        //隐藏软键盘
+        InputMethodManager imm = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
     /**
@@ -171,7 +180,6 @@ public class SearchView extends LinearLayout implements View.OnClickListener {
 
         @Override
         public void afterTextChanged(Editable editable) {
-//            Toast.makeText(mContext,editable.toString(),Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -199,14 +207,14 @@ public class SearchView extends LinearLayout implements View.OnClickListener {
         /**
          * 更新自动补全内容
          *
-         * @param text
+         * @param text 传入补全后的文本
          */
         void onRefreshAutoComplete(String text);
 
         /**
          * 开始搜索
          *
-         * @param text
+         * @param text 传入输入框的文本
          */
         void onSearch(String text);
 

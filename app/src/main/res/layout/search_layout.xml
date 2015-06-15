@@ -6,14 +6,13 @@
               android:orientation="vertical">
 
     <LinearLayout
-        android:background="@color/myred"
+        android:background="#eb4f38"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
 
         <FrameLayout
-
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content">

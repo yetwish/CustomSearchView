@@ -226,9 +226,7 @@ public class MainActivity extends Activity implements SearchView.SearchViewListe
             resultAdapter.notifyDataSetChanged();
         }
         Toast.makeText(this, "完成搜素", Toast.LENGTH_SHORT).show();
-        //隐藏软键盘
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+
 
     }
 
