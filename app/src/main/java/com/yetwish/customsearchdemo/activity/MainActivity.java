@@ -1,10 +1,13 @@
 package com.yetwish.customsearchdemo.activity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -19,34 +22,67 @@ import java.util.List;
 
 public class MainActivity extends Activity implements SearchView.SearchViewListener {
 
+    /**
+     * 搜索结果列表view
+     */
     private ListView lvResults;
 
-    private SearchAdapter hintAdapter;
-    private SearchAdapter autoCompleteAdapter;
+    /**
+     * 搜索view
+     */
+    private SearchView searchView;
+
+
+    /**
+     * 热搜框列表adapter
+     */
+    private ArrayAdapter<String> hintAdapter;
+
+    /**
+     * 自动补全列表adapter
+     */
+    private ArrayAdapter<String> autoCompleteAdapter;
+
+    /**
+     * 搜索结果列表adapter
+     */
     private SearchAdapter resultAdapter;
+
+    private List<Bean> dbData;
 
     /**
      * 热搜版数据
      */
-    private List<Bean> hintData;
-
-    private static int HINT_SIZE = 4;
-
-    public static void setHintSize(int hintSize) {
-        HINT_SIZE = hintSize;
-    }
+    private List<String> hintData;
 
     /**
      * 搜索过程中自动补全数据
      */
-    private List<Bean> autoCompleteData;
+    private List<String> autoCompleteData;
 
     /**
-     *
+     * 搜索结果的数据
      */
     private List<Bean> resultData;
 
-    private SearchView searchView;
+    /**
+     * 默认提示框显示项的个数
+     */
+    private static int DEFAULT_HINT_SIZE = 4;
+
+    /**
+     * 提示框显示项的个数
+     */
+    private static int hintSize = DEFAULT_HINT_SIZE;
+
+    /**
+     * 设置提示框显示项的个数
+     *
+     * @param hintSize 提示框显示个数
+     */
+    public static void setHintSize(int hintSize) {
+        MainActivity.hintSize = hintSize;
+    }
 
 
     @Override
@@ -58,63 +94,100 @@ public class MainActivity extends Activity implements SearchView.SearchViewListe
         initViews();
     }
 
+    /**
+     * 初始化视图
+     */
     private void initViews() {
         lvResults = (ListView) findViewById(R.id.main_lv_search_results);
         searchView = (SearchView) findViewById(R.id.main_search_layout);
+        //设置监听
         searchView.setSearchViewListener(this);
+        //设置adapter
         searchView.setTipsHintAdapter(hintAdapter);
         searchView.setAutoCompleteAdapter(autoCompleteAdapter);
 
         lvResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Toast.makeText(MainActivity.this,position+"",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, position + "", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void initData(){
+    /**
+     * 初始化数据
+     */
+    private void initData() {
+        //从数据库获取数据
+        getDbData();
+        //初始化热搜版数据
         getHintData();
-        getAutoCompleteData();
-        getResultData();
+        //初始化自动补全数据
+        getAutoCompleteData(null);
+        //初始化搜索结果数据
+        getResultData(null);
     }
 
-    private void getHintData() {
-        hintData = new ArrayList<>(HINT_SIZE);
-        for (int i = 0; i < HINT_SIZE; i++) {
-            hintData.add(new Bean(R.drawable.icon, "习得Android新技能" + i, "自定义搜索方法", "100"));
+    /**
+     * 获取db 数据
+     */
+    private void getDbData() {
+        int size = 100;
+        dbData = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            dbData.add(new Bean(R.drawable.icon, "android开发必备技能" + (i + 1), "Android自定义view——自定义搜索view", i * 20 + 2 + ""));
         }
-        hintAdapter = new SearchAdapter(this, hintData, R.layout.item_bean_list);
+    }
+
+    /**
+     * 获取热搜版data 和adapter
+     */
+    private void getHintData() {
+        hintData = new ArrayList<>(hintSize);
+        for (int i = 1; i <= hintSize; i++) {
+            hintData.add("热搜版" + i + "：Android自定义View");
+        }
+        hintAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, hintData);
     }
 
     /**
      * 获取自动补全data 和adapter
      */
-    private void getAutoCompleteData() {
+    private void getAutoCompleteData(String text) {
         if (autoCompleteData == null) {
-            autoCompleteData = new ArrayList<>(HINT_SIZE);
-        }
-        for (int i = 0; i < HINT_SIZE; i++) {
-            autoCompleteData.add(new Bean
-                    (R.drawable.icon, "获取Android新技能" + i, "自定义搜索方法", "300"));
+            //初始化
+            autoCompleteData = new ArrayList<>(hintSize);
+        } else {
+            // 根据text 获取auto data
+            autoCompleteData.clear();
+            for (int i = 0, count = 0; i < dbData.size()
+                    && count < hintSize; i++) {
+                if (dbData.get(i).getTitle().contains(text.trim())) {
+                    autoCompleteData.add(dbData.get(i).getTitle());
+                    count++;
+                }
+            }
         }
         if (autoCompleteAdapter == null) {
-            autoCompleteAdapter = new SearchAdapter(this, autoCompleteData, R.layout.item_bean_list);
+            autoCompleteAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, autoCompleteData);
         } else {
             autoCompleteAdapter.notifyDataSetChanged();
         }
     }
 
     /**
-     * 获取搜索结果data
+     * 获取搜索结果data和adapter
      */
-    private void getResultData() {
-        int size = 10;
+    private void getResultData(String text) {
         if (resultData == null) {
+            // 初始化
             resultData = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
-                resultData.add(new Bean
-                        (R.drawable.icon, "搜索结果" + i, "自定义搜索方法 :自定义搜索输入框+自定义弹出样式使用spinner配合listView\n" + "自定义数据源格式和搜索算法", "300"));
+        } else {
+            resultData.clear();
+            for (int i = 0; i < dbData.size(); i++) {
+                if (dbData.get(i).getTitle().contains(text.trim())) {
+                    resultData.add(dbData.get(i));
+                }
             }
         }
         if (resultAdapter == null) {
@@ -124,35 +197,39 @@ public class MainActivity extends Activity implements SearchView.SearchViewListe
         }
     }
 
-
     /**
-     * 当 edit text 文本改变时 触发的回调
+     * 当搜索框 文本改变时 触发的回调 ,更新自动补全数据
      * @param text
      */
     @Override
     public void onRefreshAutoComplete(String text) {
         //更新数据
+        getAutoCompleteData(text);
     }
 
     /**
      * 点击搜索键时edit text触发的回调
+     *
      * @param text
      */
     @Override
     public void onSearch(String text) {
-        Toast.makeText(this,"start searching",Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onTipsItemClick() {
+        //更新result数据
+        getResultData(text);
         lvResults.setVisibility(View.VISIBLE);
         //第一次获取结果 还未配置适配器
-        if(lvResults.getAdapter() == null){
+        if (lvResults.getAdapter() == null) {
             //获取搜索数据 设置适配器
             lvResults.setAdapter(resultAdapter);
-        }else{
+        } else {
             //更新搜索数据
             resultAdapter.notifyDataSetChanged();
         }
+        Toast.makeText(this, "完成搜素", Toast.LENGTH_SHORT).show();
+        //隐藏软键盘
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+
     }
+
 }

@@ -34,7 +34,7 @@
 
             <ImageView
                 android:visibility="gone"
-                android:layout_marginRight="15dp"
+                android:layout_marginRight="20dp"
                 android:src="@drawable/iv_delete_bg"
                 android:id="@+id/search_iv_delete"
                 android:layout_gravity="right|center_vertical"

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CustomSearchDemo.iml" filepath="$PROJECT_DIR$/CustomSearchDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CustomSearchView.iml" filepath="$PROJECT_DIR$/CustomSearchView.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
